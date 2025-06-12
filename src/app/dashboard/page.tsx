@@ -5,11 +5,23 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
     return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black">
+        <p className="text-lg text-gray-400">Checking authentication...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black">
@@ -17,10 +29,10 @@ export default function Dashboard() {
       <p className="text-lg text-gray-400">This is the dashboard page.</p>
       <div className="mt-4">
         <a
-          href="/home"
+          href="/upload"
           className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow"
         >
-          Go to Home
+          Go to upload page
         </a>
       </div>
         {user ? (

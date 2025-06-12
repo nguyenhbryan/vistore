@@ -1,49 +1,73 @@
 "use client";
 
 import { auth, provider } from "@/app/utils/firebaseClient";
-import { signInWithPopup, User } from "firebase/auth";
+import { signInWithPopup, onAuthStateChanged, User } from "firebase/auth";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, setUser);
+    return () => unsubscribe();
+  }, []);
+
   const handleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      setUser(user);
-      console.log("Signed in:", user);
-      redirect("/home");
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged will update user
     } catch (err) {
       console.error("Login failed:", err);
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen justify-center items-center p-4">
-      <div>
-      <button
-        onClick={handleLogin}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        
-        Sign in with Google
-      </button>
-      </div>
-      <h1 className="text-2xl font-bold mt-4">Welcome to Video Uploader</h1>
-      <Link href="/home" className="text-blue-500 hover:underline">
-        Go to Upload Page
-      </Link>
-      <Link href="/dashboard" className="text-blue-500 hover:underline mt-2">
-        Go to Dashboard
-      </Link>
-
-      {user && (
-        <div className="mt-4">
-          <p>Welcome, {user.displayName}</p>
-        </div>
+      {!user ? (
+        <>
+          <button
+            onClick={handleLogin}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Sign in with Google
+          </button>
+          <h1 className="text-2xl font-bold mt-4">Welcome to Video Uploader</h1>
+        </>
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold mb-4">
+            Welcome, {user.displayName || user.email}
+          </h1>
+          <div className="flex flex-col gap-2 items-center">
+            <Link
+              href="/upload"
+              className="text-blue-500 hover:underline"
+            >
+              Go to Upload Page
+            </Link>
+            <Link
+              href="/dashboard"
+              className="text-blue-500 hover:underline"
+            >
+              Go to Dashboard
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-4 py-2 rounded mt-2"
+            >
+              Sign Out
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
