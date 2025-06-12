@@ -2,6 +2,7 @@
 
 import { auth, provider } from "@/app/utils/firebaseClient";
 import { signInWithPopup, User } from "firebase/auth";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 
@@ -21,13 +22,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="p-4">
+    <div className="flex flex-col justify-center align-items-center p-4">
+      <div>
       <button
         onClick={handleLogin}
         className="bg-blue-500 text-white px-4 py-2 rounded"
       >
+        
         Sign in with Google
       </button>
+      </div>
+      <h1 className="text-2xl font-bold mt-4">Welcome to Video Uploader</h1>
+      <Link href="/home" className="text-blue-500 hover:underline">
+        Go to Upload Page
+      </Link>
 
       {user && (
         <div className="mt-4">
