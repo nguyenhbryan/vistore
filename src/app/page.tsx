@@ -22,7 +22,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col justify-center align-items-center p-4">
+    <div className="flex flex-col min-h-screen justify-center items-center p-4">
       <div>
       <button
         onClick={handleLogin}
@@ -35,6 +35,9 @@ export default function LoginPage() {
       <h1 className="text-2xl font-bold mt-4">Welcome to Video Uploader</h1>
       <Link href="/home" className="text-blue-500 hover:underline">
         Go to Upload Page
+      </Link>
+      <Link href="/dashboard" className="text-blue-500 hover:underline mt-2">
+        Go to Dashboard
       </Link>
 
       {user && (
