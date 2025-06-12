@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useParams } from "next/navigation"; // For dynamic route parameters
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../utils/firebaseClient"; // Adjust the import path as necessary
+import { db } from "../../utils/firebaseClient"; // Adjust the import path as necessary
 
 export default function VideoPage() {
   const { id } = useParams<{ id: string }>(); // Get the dynamic route parameter
