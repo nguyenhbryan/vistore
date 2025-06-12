@@ -31,6 +31,14 @@ export default function VideoPage() {
 
   return (
     <div>
+      <div className="flex justify-end p-4">
+        <a
+          href="/"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow"
+        >
+          Back to Home
+        </a>
+      </div>
       {videoURL ? (
         <div className="flex justify-center min-h-screen">
           <video controls src={videoURL} width="300" />
