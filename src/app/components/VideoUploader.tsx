@@ -1,28 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '../utils/firebaseClient';
+import { storage, auth } from '../utils/firebaseClient';
 import { nanoid } from 'nanoid';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../utils/firebaseClient';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 export default function VideoUploader() {
   const [progress, setProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Track auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, setUser);
+    return () => unsubscribe();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     setSelectedFile(e.target.files[0]);
     setProgress(0);
+    setError(null);
   };
 
   const handleUpload = async () => {
+    if (!user) {
+      setError('You must be signed in to upload a video.');
+      return;
+    }
     if (!selectedFile) return;
     setUploading(true);
+    setError(null);
     const uniqueId = nanoid(8);
     const storageRef = ref(storage, `videos/${uniqueId}-${selectedFile.name}`);
     const uploadTask = uploadBytesResumable(storageRef, selectedFile);
@@ -36,6 +51,7 @@ export default function VideoUploader() {
       (err) => {
         console.error(err);
         setUploading(false);
+        setError('Upload failed. Please try again.');
       },
       async () => {
         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
@@ -44,9 +60,10 @@ export default function VideoUploader() {
           url: downloadURL,
           name: selectedFile.name,
           uploadedAt: new Date().toISOString(),
+          userId: user.uid,
         });
         setUploading(false);
-        router.push(`/${uniqueId}`);
+        router.push(`video/${uniqueId}`);
       }
     );
   };
@@ -62,7 +79,7 @@ export default function VideoUploader() {
       />
       <label
         htmlFor="file-upload"
-        className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow transition-colors duration-200"
+        className={`cursor-pointer bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow transition-colors duration-200${!user || uploading ? ' opacity-50 pointer-events-none' : ''}`}
       >
         Choose Video
       </label>
@@ -71,14 +88,16 @@ export default function VideoUploader() {
           <span className="text-white text-sm">Selected: {selectedFile.name}</span>
           <button
             onClick={handleUpload}
-            disabled={uploading}
-            className="cursor-pointer bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded shadow transition-colors duration-200 disabled:opacity-50"
+            disabled={uploading || !user}
+            className={`cursor-pointer bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded shadow transition-colors duration-200 disabled:opacity-50 ${!user || uploading ? ' opacity-50 pointer-events-none' : ''}`}
           >
             {uploading ? 'Uploading...' : 'Upload'}
           </button>
         </>
       )}
       {progress > 0 && <p className="text-white">Upload Progress: {progress}%</p>}
+      {error && <p className="text-red-400">{error}</p>}
+      {!user && <p className="text-red-400">You must be signed in to upload.</p>}
     </div>
   );
 }
