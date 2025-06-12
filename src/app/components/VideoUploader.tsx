@@ -9,7 +9,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../utils/firebaseClient';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
-export default function VideoUploader() {
+export default function VideoUploader(props: { userId: string }) {
   const [progress, setProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
