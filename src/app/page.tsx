@@ -4,9 +4,11 @@ import { auth, provider } from "@/app/utils/firebaseClient";
 import { signInWithPopup, onAuthStateChanged, User } from "firebase/auth";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, setUser);
@@ -16,7 +18,7 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       await signInWithPopup(auth, provider);
-      // onAuthStateChanged will update user
+      router.push('/dashboard');
     } catch (err) {
       console.error("Login failed:", err);
     }
